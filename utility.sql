@@ -59,6 +59,9 @@ call utility.public.loopquery('grant all on future views in schema hol.schemaXXX
 call utility.public.loopquery('GRANT usage ON schema hol.schemaXXX TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT create stage ON schema hol.schemaXXX TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT usage ON warehouse whXXX TO ROLE roleXXX', $num_users);
+call utility.public.loopquery('GRANT operate ON warehouse whXXX TO ROLE roleXXX', $num_users);
+call utility.public.loopquery('GRANT monitor ON warehouse whXXX TO ROLE roleXXX', $num_users);
+call utility.public.loopquery('GRANT modify ON warehouse whXXX TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT ROLE cortex_user_role TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT CREATE STREAMLIT ON SCHEMA hol.schemaXXX TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT CREATE STAGE ON SCHEMA hol.schemaXXX TO ROLE roleXXX', $num_users);
