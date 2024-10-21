@@ -65,5 +65,6 @@ call utility.public.loopquery('GRANT modify ON warehouse whXXX TO ROLE roleXXX',
 call utility.public.loopquery('GRANT ROLE cortex_user_role TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT CREATE STREAMLIT ON SCHEMA hol.schemaXXX TO ROLE roleXXX', $num_users);
 call utility.public.loopquery('GRANT CREATE STAGE ON SCHEMA hol.schemaXXX TO ROLE roleXXX', $num_users);
+call utility.public.loopquery('GRANT CREATE NOTEBOOK ON SCHEMA hol.schemaXXX TO ROLE roleXXX', $num_users);
 
 SHOW USERS;
