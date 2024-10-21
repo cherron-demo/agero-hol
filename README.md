@@ -1,7 +1,7 @@
-# Snowflake Cortex ML & LLM -Powered Functions
+# Snowflake Geospatial Analysis & Churn Prediction
 
 ## Overview
-This lab walks you through the process of setting up and using Snowflake Cortex Functions. Follow the steps below to ensure the lab environment is set up properly and cleaned up afterward.
+This lab walks you through the process of analyzing geospatial data, building a streamlit app, and predicting customer churn by training an ML model. Follow the steps below to ensure the lab environment is set up properly and cleaned up afterward.
 
 ## Setup Instructions
 
