@@ -1,0 +1,66 @@
+use role roleXXX;
+use warehouse whXXX;
+use database hol;
+use schema schemaXXX;
+
+--you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
+
+CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT_analysis AS
+SELECT * exclude (food_cost, food_quality, food_delivery_time, sentiment) ,
+         CASE
+             WHEN sentiment = 'very positive' THEN 5
+             WHEN sentiment = 'positive' THEN 4
+             WHEN sentiment = 'neutral'
+                  OR sentiment = 'mixed' THEN 3
+             WHEN sentiment = 'negative' THEN 2
+             WHEN sentiment = 'very negative' THEN 1
+             ELSE NULL
+         END sentiment_score ,
+         CASE
+             WHEN food_cost = 'very positive' THEN 5
+             WHEN food_cost = 'positive' THEN 4
+             WHEN food_cost = 'neutral'
+                  OR food_cost = 'mixed' THEN 3
+             WHEN food_cost = 'negative' THEN 2
+             WHEN food_cost = 'very negative' THEN 1
+             ELSE NULL
+         END cost_score ,
+         CASE
+             WHEN food_quality = 'very positive' THEN 5
+             WHEN food_quality = 'positive' THEN 4
+             WHEN food_quality = 'neutral'
+                  OR food_quality = 'mixed' THEN 3
+             WHEN food_quality = 'negative' THEN 2
+             WHEN food_quality = 'very negative' THEN 1
+             ELSE NULL
+         END food_quality_score ,
+         CASE
+             WHEN food_delivery_time = 'very positive' THEN 5
+             WHEN food_delivery_time = 'positive' THEN 4
+             WHEN food_delivery_time = 'neutral'
+                  OR food_delivery_time = 'mixed' THEN 3
+             WHEN food_delivery_time = 'negative' THEN 2
+             WHEN food_delivery_time = 'very negative' THEN 1
+             ELSE NULL
+         END delivery_time_score
+FROM
+  (SELECT order_id ,
+          customer_id ,
+          delivery_location ,
+          delivery_postcode ,
+          delivery_distance_miles ,
+          restaurant_food_type ,
+          restaurant_location ,
+          restaurant_postcode ,
+          restaurant_id ,
+          review ,
+          try_parse_json(lower(sentiment_assessment)):classification::varchar AS sentiment ,
+          try_parse_json(lower(sentiment_categories)):food_cost::varchar AS food_cost ,
+          try_parse_json(lower(sentiment_categories)):food_quality::varchar AS food_quality ,
+          try_parse_json(lower(sentiment_categories)):food_delivery_time::varchar AS food_delivery_time
+   FROM HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT);
+
+
+--In this step, you will visualize the scoring results on the map. Open Projects > Streamlit > + Streamlit App. Give the new app a name, for example Sentiment analysis - results, and pick ADVANCED_ANALYTICS.PUBLIC as an app location.
+
+--Click on the packages tab and add pydeck and branca to the list of packages as our app will be using them.
