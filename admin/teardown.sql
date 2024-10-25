@@ -1,7 +1,7 @@
 USE ROLE accountadmin;
 use schema utility.public;
 
-set num_users = 3;
+set num_users = xxx;
 
 call utility.public.loopquery('drop database if exists HOL;', $num_users);
 call utility.public.loopquery('drop user if exists userXXX;', $num_users);
