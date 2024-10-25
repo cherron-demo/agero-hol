@@ -3,9 +3,27 @@ use warehouse whXXX;
 use database hol;
 use schema schemaXXX;
 
+--Quick example of geospatial functions
+
+--Querying the distance between Berlin and San Francisco
+SELECT ST_DISTANCE(
+ST_POINT(13.4814, 52.5015),
+ST_POINT(-121.8212, 36.8252))
+AS distance_in_meters;
+
+
+--Explore the customer review data set
+SELECT * FROM ORDERS_REVIEWS_SENTIMENT LIMIT 10;
+
+
+SELECT DISTINCT ST_AREA(restaurant_location) AS area_in_sq_meters
+FROM orders_reviews
+WHERE restaurant_id = 'a12a0b0ad7bb28b3a71328b8221e8ba3';
+
+
 --you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
 
-CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT_analysis AS
+CREATE OR REPLACE TABLE HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis AS
 SELECT * exclude (food_cost, food_quality, food_delivery_time, sentiment) ,
          CASE
              WHEN sentiment = 'very positive' THEN 5
@@ -58,9 +76,8 @@ FROM
           try_parse_json(lower(sentiment_categories)):food_cost::varchar AS food_cost ,
           try_parse_json(lower(sentiment_categories)):food_quality::varchar AS food_quality ,
           try_parse_json(lower(sentiment_categories)):food_delivery_time::varchar AS food_delivery_time
-   FROM HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT);
+   FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT);
 
 
---In this step, you will visualize the scoring results on the map. Open Projects > Streamlit > + Streamlit App. Give the new app a name, for example Sentiment analysis - results, and pick ADVANCED_ANALYTICS.PUBLIC as an app location.
 
---Click on the packages tab and add pydeck and branca to the list of packages as our app will be using them.
+SELECT * FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis;
