@@ -16,7 +16,7 @@ def get_h3_df_orders_quantiles(resolution: float, type_of_location: str) -> pd.D
         f"""SELECT
         H3_POINT_TO_CELL_STRING(to_geography({ type_of_location }), { resolution }) AS h3,
         round(count(*),2) as count
-        FROM HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT_analysis
+        FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis
         GROUP BY 1""")
 
     quantiles = get_quantile_in_column(df, "COUNT")
@@ -29,7 +29,7 @@ def get_h3_df_sentiment_quantiles(
         f""" SELECT 
         H3_POINT_TO_CELL_STRING(TO_GEOGRAPHY({ type_of_location }),{ resolution }) AS h3,
         round(AVG({ type_of_sentiment }),2) AS count
-        FROM HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT_analysis
+        FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis
         WHERE { type_of_sentiment } IS NOT NULL 
         GROUP BY 1""")
 
