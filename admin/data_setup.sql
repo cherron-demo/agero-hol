@@ -12,7 +12,9 @@
 
 use role accountadmin;
 create or replace database hol;
-use schema public; 
+use schema public;
+
+---------------Geolocation data and Sentiment data setup---------------
 
 CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_ADDRESSES AS
 SELECT * 
@@ -22,6 +24,14 @@ AND city ILIKE 'berlin';
 
 SELECT * FROM HOL.PUBLIC.GEOCODING_ADDRESSES;
 
+--Medium warehouse recommended. This will take ~11 minutes to run
+CREATE OR REPLACE TABLE HOL.PUBLIC.OPENADDRESS AS
+SELECT ST_POINT(lon, lat) as location, *
+FROM WORLDWIDE_ADDRESS_DATA.ADDRESS.OPENADDRESS
+WHERE lon between -180 and 180
+AND lat between -90 and 90;
+
+--This will take ~13 minutes to run
 CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES as
 SELECT geom, geoid, street_address, name,
     snowflake.cortex.complete('mixtral-8x7b', 
@@ -55,12 +65,12 @@ SELECT geom, geoid, street_address, name,
             Output: {"number": "28c", "street": "Plaza de España", "city": "Madrid", "postcode": "28008", "country": "ES"}
             Input: "1d Prinzessinenstrase, Berlín, 10969, Germany"
             Output: {"number": "1d", "street": "Prinzessinnenstraße", "city": "Berlin", "postcode": "10969", "country": "DE"} ')) as parsed_address 
-        FROM ADVANCED_ANALYTICS.PUBLIC.GEOCODING_ADDRESSES;
+        FROM HOL.PUBLIC.GEOCODING_ADDRESSES;
 
 CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES AS
 SELECT geoid, geom, street_address, name,
 TRY_PARSE_JSON(parsed_address) AS parsed_address,
-FROM ADVANCED_ANALYTICS.PUBLIC.GEOCODING_CLEANSED_ADDRESSES;
+FROM HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES;
 
 ALTER SESSION SET GEOGRAPHY_OUTPUT_FORMAT='WKT';
 
@@ -88,14 +98,45 @@ AND LOWER(t1.parsed_address:city::string) = LOWER(t2.city)
 AND JAROWINKLER_SIMILARITY(LOWER(t1.parsed_address:street::string), LOWER(t2.street)) > 95;
 
 
+CREATE OR REPLACE STAGE hol_stage URL = 's3://sfquickstarts/hol_geo_spatial_ml_using_snowflake_cortex/';
+
+CREATE OR REPLACE FILE FORMAT csv_format_nocompression TYPE = csv
+FIELD_OPTIONALLY_ENCLOSED_BY = '"' FIELD_DELIMITER = ',' skip_header = 1;
+
+CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS AS
+SELECT  $1::NUMBER as order_id,
+        $2::VARCHAR as customer_id,
+        TO_GEOGRAPHY($3) as delivery_location,
+        $4::NUMBER as delivery_postcode,
+        $5::FLOAT as delivery_distance_miles,
+        $6::VARCHAR as restaurant_food_type,
+        TO_GEOGRAPHY($7) as restaurant_location,
+        $8::NUMBER as restaurant_postcode,
+        $9::VARCHAR as restaurant_id,
+        $10::VARCHAR as review
+FROM @HOL.PUBLIC.HOL_STAGE/food_delivery_reviews.csv (file_format => 'csv_format_nocompression');
 
 
+CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT (
+	ORDER_ID NUMBER(38,0),
+	CUSTOMER_ID VARCHAR(16777216),
+	DELIVERY_LOCATION GEOGRAPHY,
+	DELIVERY_POSTCODE NUMBER(38,0),
+	DELIVERY_DISTANCE_MILES FLOAT,
+	RESTAURANT_FOOD_TYPE VARCHAR(16777216),
+	RESTAURANT_LOCATION GEOGRAPHY,
+	RESTAURANT_POSTCODE NUMBER(38,0),
+	RESTAURANT_ID VARCHAR(16777216),
+	REVIEW VARCHAR(16777216),
+	SENTIMENT_ASSESSMENT VARCHAR(16777216),
+	SENTIMENT_CATEGORIES VARCHAR(16777216)
+);
 
 
+COPY INTO HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT
+FROM @HOL.PUBLIC.HOL_STAGE/food_delivery_reviews.csv
+FILE_FORMAT = (FORMAT_NAME = csv_format_nocompression);
 
 
---Navigate to the Marketplace screen using the menu on the left side of the window
---Search for CARTO Academy in the search bar
---Find and click the CARTO Academy - Data for tutorials tile
---Once in the listing, click the big blue Get button
+select * from HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT;
 
