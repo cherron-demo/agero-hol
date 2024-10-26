@@ -3,24 +3,43 @@ use warehouse whXXX;
 use database hol;
 use schema schemaXXX;
 
---Quick example of geospatial functions
+--Example of geospatial functions
 
---Querying the distance between Berlin and San Francisco
-SELECT ST_DISTANCE(
-ST_POINT(13.4814, 52.5015),
-ST_POINT(-121.8212, 36.8252))
-AS distance_in_meters;
+ALTER SESSION SET GEOGRAPHY_OUTPUT_FORMAT='WKT';
+
+SELECT TOP 10 * FROM HOL.SCHEMAXXX.GEOCODING_CLEANSED_ADDRESSES;
+
+SELECT * FROM HOL.SCHEMAXXX.GEOCODING_CLEANSED_ADDRESSES
+WHERE parsed_address IS NULL;
+
+--In this step, you will use the Worldwide Address Data to perform geocoding. You will join this dataset with your cleansed address data using country, 
+--city, postal code, street, and building number as keys. For street name comparison, you will use Jaro-Winkler distance to measure similarity between the two strings. 
+--You should use a sufficiently high similarity threshold but not 100%, which would imply exact matches. Approximate similarity is necessary to account for 
+--potential variations in street names, such as "Street" versus "Straße".
+
+CREATE OR REPLACE TABLE HOL.SCHEMA2.GEOCODED AS
+SELECT 
+    t1.name,
+    t1.geom AS actual_location,
+    t2.location AS geocoded_location, 
+    t1.street_address as actual_address,
+    t2.street as geocoded_street, 
+    t2.postcode as geocoded_postcode, 
+    t2.number as geocoded_number, 
+    t2.city as geocoded_city
+FROM HOL.SCHEMAXXX.GEOCODING_CLEANSED_ADDRESSES t1
+LEFT JOIN HOL.SCHEMAXXX.OPENADDRESS t2
+ON t1.parsed_address:postcode::string = t2.postcode
+AND t1.parsed_address:number::string = t2.number
+AND LOWER(t1.parsed_address:country::string) = LOWER(t2.country)
+AND LOWER(t1.parsed_address:city::string) = LOWER(t2.city)
+AND JAROWINKLER_SIMILARITY(LOWER(t1.parsed_address:street::string), LOWER(t2.street)) > 95
+LIMIT 100;
+
+SELECT * FROM HOL.SCHEMAXXX.GEOCODED;
 
 
---Explore the customer review data set
-SELECT * FROM ORDERS_REVIEWS_SENTIMENT LIMIT 10;
-
-
-SELECT DISTINCT ST_AREA(restaurant_location) AS area_in_sq_meters
-FROM orders_reviews
-WHERE restaurant_id = 'a12a0b0ad7bb28b3a71328b8221e8ba3';
-
-
+--Sentiment Analysis + Geospatial Data
 --you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
 
 CREATE OR REPLACE TABLE HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis AS
