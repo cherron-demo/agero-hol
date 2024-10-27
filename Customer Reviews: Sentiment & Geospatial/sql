@@ -17,7 +17,7 @@ WHERE parsed_address IS NULL;
 --You should use a sufficiently high similarity threshold but not 100%, which would imply exact matches. Approximate similarity is necessary to account for 
 --potential variations in street names, such as "Street" versus "Straße".
 
-CREATE OR REPLACE TABLE HOL.SCHEMA2.GEOCODED AS
+CREATE OR REPLACE TABLE HOL.SCHEMAXXX.GEOCODED AS
 SELECT 
     t1.name,
     t1.geom AS actual_location,
