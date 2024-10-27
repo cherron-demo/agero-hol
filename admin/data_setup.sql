@@ -72,31 +72,6 @@ SELECT geoid, geom, street_address, name,
 TRY_PARSE_JSON(parsed_address) AS parsed_address,
 FROM HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES;
 
-ALTER SESSION SET GEOGRAPHY_OUTPUT_FORMAT='WKT';
-
-SELECT TOP 10 * FROM HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES;
-
-SELECT * FROM HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES
-WHERE parsed_address IS NULL;
-
-CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODED AS
-SELECT 
-    t1.name,
-    t1.geom AS actual_location,
-    t2.location AS geocoded_location, 
-    t1.street_address as actual_address,
-    t2.street as geocoded_street, 
-    t2.postcode as geocoded_postcode, 
-    t2.number as geocoded_number, 
-    t2.city as geocoded_city
-FROM ADVANCED_ANALYTICS.PUBLIC.GEOCODING_CLEANSED_ADDRESSES t1
-LEFT JOIN ADVANCED_ANALYTICS.PUBLIC.OPENADDRESS t2
-ON t1.parsed_address:postcode::string = t2.postcode
-AND t1.parsed_address:number::string = t2.number
-AND LOWER(t1.parsed_address:country::string) = LOWER(t2.country)
-AND LOWER(t1.parsed_address:city::string) = LOWER(t2.city)
-AND JAROWINKLER_SIMILARITY(LOWER(t1.parsed_address:street::string), LOWER(t2.street)) > 95;
-
 
 CREATE OR REPLACE STAGE hol_stage URL = 's3://sfquickstarts/hol_geo_spatial_ml_using_snowflake_cortex/';
 
