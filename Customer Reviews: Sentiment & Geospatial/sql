@@ -38,6 +38,12 @@ LIMIT 100;
 
 SELECT * FROM HOL.SCHEMAXXX.GEOCODED;
 
+--Querying the distance between Berlin and San Francisco (in meters)
+SELECT ST_DISTANCE(
+ST_POINT(13.4814, 52.5015),
+ST_POINT(-121.8212, 36.8252))
+AS distance_in_meters;
+
 
 --Sentiment Analysis + Geospatial Data
 --you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
