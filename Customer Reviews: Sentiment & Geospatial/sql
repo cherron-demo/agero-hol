@@ -55,6 +55,8 @@ AS distance_in_meters;
 
 --you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
 
+SELECT * FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT;
+
 CREATE OR REPLACE TABLE HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis AS
 SELECT * exclude (food_cost, food_quality, food_delivery_time, sentiment) ,
          CASE
