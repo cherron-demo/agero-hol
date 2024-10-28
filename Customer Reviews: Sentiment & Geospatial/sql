@@ -115,3 +115,5 @@ FROM
 
 
 SELECT * FROM HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis;
+
+--visualize the scoring results on the map. Open Projects > Streamlit > + Streamlit App. Give the new app a name, for example Sentiment analysis - results, and pick ADVANCED_ANALYTICS.PUBLIC as an app location.
