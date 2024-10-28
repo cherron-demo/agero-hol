@@ -46,6 +46,13 @@ AS distance_in_meters;
 
 
 --Sentiment Analysis + Geospatial Data
+
+--This lab will show you how to inject AI into your spatial analysis using Cortex Large Language Model (LLM) Functions 
+--to help you take your product and marketing strategy to the next level. Specifically, you're going to build a data application 
+--that gives food delivery companies the ability to explore the sentiments of customers in the Greater Bay Area. 
+--To do this, you use the Cortex LLM Complete Function to classify customer sentiment and extract the underlying reasons for that 
+--sentiment from a customer review. Then you use the Discrete Global Grid H3 for visualizing and exploring spatial data.
+
 --you need to parse JSONs to store each component of the score into a separate column and convert the scoring provided by the LLM into numeric format, so you can easily visualize it. Run the following query:
 
 CREATE OR REPLACE TABLE HOL.SCHEMAXXX.ORDERS_REVIEWS_SENTIMENT_analysis AS
