@@ -24,3 +24,14 @@ This lab walks you through the process of analyzing geospatial data, building a 
   
 
 ![Image](https://github.com/user-attachments/assets/9b8c6209-b468-473c-90a2-2bbfe28e715e)
+
+![Image](https://github.com/user-attachments/assets/3ba22d37-2693-4f2f-b7ad-51d35101b1b1)
+
+![Image](https://github.com/user-attachments/assets/46bd4ab8-9c33-43c1-945e-9b72b65bf9ae)
+
+![Image](https://github.com/user-attachments/assets/a6f6014c-6c92-4ce1-93db-c563db05672d)
+
+![Image](https://github.com/user-attachments/assets/cf519c1a-6c32-460d-ba28-2b5149aace65)
+
+
+
