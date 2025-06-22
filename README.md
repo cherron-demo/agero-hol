@@ -21,3 +21,6 @@ This lab walks you through the process of analyzing geospatial data, building a 
 1. **Run Cleanup Script:**
 
    - **Step 1:** Once the lab is completed, run `teardown.sql` to remove any objects (tables, functions, etc.) created during the lab to keep the environment clean.
+  
+
+![Image](https://github.com/user-attachments/assets/9b8c6209-b468-473c-90a2-2bbfe28e715e)
