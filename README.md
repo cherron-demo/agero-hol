@@ -1,27 +1,21 @@
-# Snowflake Geospatial Analysis & Churn Prediction
+# Snowflake Forecast, Call Transcript Analysis, and Image Classification Lab
 
 ## Overview
-This lab walks you through the process of analyzing geospatial data, building a streamlit app, and predicting customer churn by training an ML model. Follow the steps below to ensure the lab environment is set up properly and cleaned up afterward.
 
-## Setup Instructions
+1. **Forecasting Demand for Subscriptions:**
+   We want to understand how many total customers are likely to subscribe to a new account type for a bank. That will help us with revenue projections and staffing needs. To do this, we'll train a forecasting model then use it to generate predictions – and evaluate the model to understand how accurate those predictions are likely to be.
 
-1. **Navigate to the Setup Folder:**
-   In your environment, go to the `setup` folder where the SQL scripts are stored.
-
-2. **Run SQL Scripts:**
+2. **Call Transcript Analysis:**
 
    - **Step 1:** Run `data_setup.sql` to initialize the necessary objects for the lab.
    - **Step 2:** Run `utility.sql` to set up utility functions required for the lab.
 
-3. **Proceed with the Lab:**
+3. **Image Classification:**
    After setting up the environment, proceed with the forecasting tasks outlined in the lab guide.
 
-## Cleanup Instructions
+## Forecasting Walkthrough
 
-1. **Run Cleanup Script:**
 
-   - **Step 1:** Once the lab is completed, run `teardown.sql` to remove any objects (tables, functions, etc.) created during the lab to keep the environment clean.
-  
 
 ![Image](https://github.com/user-attachments/assets/9b8c6209-b468-473c-90a2-2bbfe28e715e)
 
