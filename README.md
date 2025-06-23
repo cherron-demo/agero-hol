@@ -3,12 +3,10 @@
 ## Overview
 
 1. **Forecasting Demand for Subscriptions:**
-   We want to understand how many total customers are likely to subscribe to a new account type for a bank. That will help us with revenue projections and staffing needs. To do this, we'll train a forecasting model then use it to generate predictions – and evaluate the model to understand how accurate those predictions are likely to be.
+   The goal is to understand how many total customers are likely to subscribe to a new account type for a bank. That will help us with revenue projections and staffing needs. To do this, we'll train a forecasting model then use it to generate predictions – and evaluate the model to understand how accurate those predictions are likely to be.
 
 2. **Call Transcript Analysis:**
-
-   - **Step 1:** Run `data_setup.sql` to initialize the necessary objects for the lab.
-   - **Step 2:** Run `utility.sql` to set up utility functions required for the lab.
+   Use Snowflake Cortex LLM functions to analyze call transcripts between a call center agent and the customer. Analysis included language translation, summarization, categorization, and sentiment analysis.
 
 3. **Image Classification:**
    After setting up the environment, proceed with the forecasting tasks outlined in the lab guide.
