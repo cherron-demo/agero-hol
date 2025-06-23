@@ -1,117 +1,108 @@
---------------------------- Geospatial Analytics, AI and ML using Snowflake ---------------------------
+-------------------------Forecast Setup-------------------------
 
---Navigate to the Marketplace screen using the menu on the left side of the window
---Search for CARTO Academy in the search bar
---Find and click the CARTO Academy - Data for tutorials tile
---Once in the listing, click the big blue Get button
+-- Using accountadmin is often suggested for quickstarts, but any role with sufficient privledges can work
+USE ROLE ACCOUNTADMIN;
 
---Navigate to the Marketplace screen using the menu on the left side of the window
---Search for Worldwide Address Data in the search bar
---Find and click on the corresponding dataset from Starschema
---On the Get Data screen, don't change the name of the database from WORLDWIDE_ADDRESS_DATA.
+-- Create development database, schema for our work: 
+CREATE OR REPLACE DATABASE agero_hol_db;
+CREATE OR REPLACE SCHEMA ml_functions;
 
-use role accountadmin;
-create or replace database hol;
-use schema public;
+-- Use appropriate resources: 
+USE DATABASE agero_hol_db;
+USE SCHEMA ml_functions;
 
----------------Geolocation data and Sentiment data setup---------------
+-- Create warehouse to work with: 
+CREATE OR REPLACE WAREHOUSE agero_hol_wh;
+USE WAREHOUSE agero_hol_wh;
 
-CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_ADDRESSES AS
-SELECT * 
-FROM CARTO_ACADEMY__DATA_FOR_TUTORIALS.CARTO.DATAAPPEAL_RESTAURANTS_AND_CAFES_BERLIN_CPG
-WHERE REGEXP_SUBSTR(street_address, '(\\d{5})') is not null
-AND city ILIKE 'berlin';
+-- Create a csv file format to be used to ingest from the stage: 
+CREATE OR REPLACE FILE FORMAT agero_hol_db.ml_functions.csv_ff
+    TYPE = 'csv'
+    SKIP_HEADER = 1,
+    COMPRESSION = AUTO;
 
-SELECT * FROM HOL.PUBLIC.GEOCODING_ADDRESSES;
+-- Create an external stage pointing to AWS S3 for loading our data:
+CREATE OR REPLACE STAGE s3load 
+    COMMENT = 'Quickstart S3 Stage Connection'
+    URL = 's3://sfquickstarts/hol_snowflake_cortex_ml_for_sql/'
+    FILE_FORMAT = agero_hol_db.ml_functions.csv_ff;
 
---Medium warehouse recommended. This will take ~11 minutes to run
-CREATE OR REPLACE TABLE HOL.PUBLIC.OPENADDRESS AS
-SELECT ST_POINT(lon, lat) as location, *
-FROM WORLDWIDE_ADDRESS_DATA.ADDRESS.OPENADDRESS
-WHERE lon between -180 and 180
-AND lat between -90 and 90;
-
---This will take ~13 minutes to run
-CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES as
-SELECT geom, geoid, street_address, name,
-    snowflake.cortex.complete('mixtral-8x7b', 
-    concat('Task: Your job is to return a JSON formatted response that normalizes, standardizes, and enriches the following address,
-            filling in any missing information when needed: ', street_address, 
-            'Requirements: Return only in valid JSON format (starting with { and ending with }).
-            The JSON response should include the following fields:
-            "number": <<house_number>>,
-            "street": <<street_name>>,
-            "city": <<city_name>>,
-            "postcode": <<postcode_value>>,
-            "country": <<ISO_3166-1_alpha-2_country_code>>.
-            Values inside <<>> must be replaced with the corresponding details from the address provided.
-            - If a value cannot be determined, use "Null".
-            - No additional fields or classifications should be included beyond the five categories listed.
-            - Country code must follow the ISO 3166-1 alpha-2 standard.
-            - Do not add comments or any other non-JSON text.
-            - Use Latin characters for street names and cities, avoiding Unicode alternatives.
-            Examples:
-            Input: "123 Mn Stret, San Franscico, CA"
-            Output: {"number": "123", "street": "Main Street", "city": "San Francisco", "postcode": "94105", "country": "US"}
-            Input: "45d Park Avnue, New Yrok, NY 10016"
-            Output: {"number": "45d", "street": "Park Avenue", "city": "New York", "postcode": "10016", "country": "US"}
-            Input: "10 Downig Stret, Londn, SW1A 2AA, United Knidom"
-            Output: {"number": "10", "street": "Downing Street", "city": "London", "postcode": "SW1A 2AA", "country": "UK"}
-            Input: "4 Avneu des Champs Elyses, Paris, France"
-            Output: {"number": "4", "street": "Avenue des Champs-Élysées", "city": "Paris", "postcode": "75008", "country": "FR"}
-            Input: "1600 Amiphiteatro Parkway, Montain View, CA 94043, USA"
-            Output: {"number": "1600", "street": "Amphitheatre Parkway", "city": "Mountain View", "postcode": "94043", "country": "US"}
-            Input: "Plaza de Espana, 28c, Madird, Spain"
-            Output: {"number": "28c", "street": "Plaza de España", "city": "Madrid", "postcode": "28008", "country": "ES"}
-            Input: "1d Prinzessinenstrase, Berlín, 10969, Germany"
-            Output: {"number": "1d", "street": "Prinzessinnenstraße", "city": "Berlin", "postcode": "10969", "country": "DE"} ')) as parsed_address 
-        FROM HOL.PUBLIC.GEOCODING_ADDRESSES;
-
-CREATE OR REPLACE TABLE HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES AS
-SELECT geoid, geom, street_address, name,
-TRY_PARSE_JSON(parsed_address) AS parsed_address,
-FROM HOL.PUBLIC.GEOCODING_CLEANSED_ADDRESSES;
-
-
-CREATE OR REPLACE STAGE hol_stage URL = 's3://sfquickstarts/hol_geo_spatial_ml_using_snowflake_cortex/';
-
-CREATE OR REPLACE FILE FORMAT csv_format_nocompression TYPE = csv
-FIELD_OPTIONALLY_ENCLOSED_BY = '"' FIELD_DELIMITER = ',' skip_header = 1;
-
-CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS AS
-SELECT  $1::NUMBER as order_id,
-        $2::VARCHAR as customer_id,
-        TO_GEOGRAPHY($3) as delivery_location,
-        $4::NUMBER as delivery_postcode,
-        $5::FLOAT as delivery_distance_miles,
-        $6::VARCHAR as restaurant_food_type,
-        TO_GEOGRAPHY($7) as restaurant_location,
-        $8::NUMBER as restaurant_postcode,
-        $9::VARCHAR as restaurant_id,
-        $10::VARCHAR as review
-FROM @HOL.PUBLIC.HOL_STAGE/food_delivery_reviews.csv (file_format => 'csv_format_nocompression');
-
-
-CREATE OR REPLACE TABLE HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT (
-	ORDER_ID NUMBER(38,0),
-	CUSTOMER_ID VARCHAR(16777216),
-	DELIVERY_LOCATION GEOGRAPHY,
-	DELIVERY_POSTCODE NUMBER(38,0),
-	DELIVERY_DISTANCE_MILES FLOAT,
-	RESTAURANT_FOOD_TYPE VARCHAR(16777216),
-	RESTAURANT_LOCATION GEOGRAPHY,
-	RESTAURANT_POSTCODE NUMBER(38,0),
-	RESTAURANT_ID VARCHAR(16777216),
-	REVIEW VARCHAR(16777216),
-	SENTIMENT_ASSESSMENT VARCHAR(16777216),
-	SENTIMENT_CATEGORIES VARCHAR(16777216)
+-- Define our table schema
+CREATE OR REPLACE TABLE agero_hol_db.ml_functions.bank_marketing(
+    CUSTOMER_ID TEXT,
+    AGE NUMBER,
+    JOB TEXT, 
+    MARITAL TEXT, 
+    EDUCATION TEXT, 
+    DEFAULT TEXT, 
+    HOUSING TEXT, 
+    LOAN TEXT, 
+    CONTACT TEXT, 
+    MONTH TEXT, 
+    DAY_OF_WEEK TEXT, 
+    DURATION NUMBER(4, 0), 
+    CAMPAIGN NUMBER(2, 0), 
+    PDAYS NUMBER(3, 0), 
+    PREVIOUS NUMBER(1, 0), 
+    POUTCOME TEXT, 
+    EMPLOYEE_VARIATION_RATE NUMBER(2, 1), 
+    CONSUMER_PRICE_INDEX NUMBER(5, 3), 
+    CONSUMER_CONFIDENCE_INDEX NUMBER(3,1), 
+    EURIBOR_3_MONTH_RATE NUMBER(4, 3),
+    NUMBER_EMPLOYEES NUMBER(5, 1),
+    CLIENT_SUBSCRIBED BOOLEAN,
+    TIMESTAMP TIMESTAMP_NTZ(9)
 );
 
+-- Ingest data from S3 into our table:
+COPY INTO agero_hol_db.ml_functions.bank_marketing
+FROM @s3load/customers.csv;
 
-COPY INTO HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT
-FROM @HOL.PUBLIC.HOL_STAGE/food_delivery_reviews.csv
-FILE_FORMAT = (FORMAT_NAME = csv_format_nocompression);
+-- View a sample of the ingested data: 
+SELECT * FROM agero_hol_db.ml_functions.bank_marketing LIMIT 100;
 
 
-select * from HOL.PUBLIC.ORDERS_REVIEWS_SENTIMENT;
+-------------------------Call Transcript Setup-------------------------
+
+CREATE OR REPLACE SCHEMA agero_hol_db.call_transcripts;
+
+USE agero_hol_db.call_transcripts; 
+
+CREATE or REPLACE file format agero_hol_db.call_transcripts.csvformat
+  SKIP_HEADER = 1
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  type = 'CSV';
+
+CREATE or REPLACE stage agero_hol_db.call_transcripts.call_transcripts_data_stage
+  file_format = csvformat
+  url = 's3://sfquickstarts/misc/call_transcripts/';
+
+CREATE or REPLACE table agero_hol_db.call_transcripts.CALL_TRANSCRIPTS ( 
+  date_created date,
+  language varchar(60),
+  country varchar(60),
+  product varchar(60),
+  category varchar(60),
+  damage_type varchar(90),
+  transcript varchar
+);
+
+COPY INTO agero_hol_db.call_transcripts.CALL_TRANSCRIPTS
+FROM @call_transcripts_data_stage;
+
+SELECT * FROM agero_hol_db.call_transcripts.CALL_TRANSCRIPTS;
+
+
+-------------------------Image Classification Setup-------------------------
+
+CREATE OR REPLACE SCHEMA agero_hol_db.image_classification;
+
+USE agero_hol_db.image_classification; 
+
+CREATE OR REPLACE STAGE image_stage
+    DIRECTORY = ( ENABLE = true )
+    ENCRYPTION = ( TYPE = 'SNOWFLAKE_SSE' );
+
+--upload images into this stage from the git rep admin/images
+
 
