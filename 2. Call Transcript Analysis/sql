@@ -1,1 +1,49 @@
+---------------------------Set Worksheet Context---------------------------
+
+use role roleXXX;
+use warehouse whXXX;
+use database agero_hol_db;
+use schema call_transcripts;
+
+---------------------------Call Transcript Analysis---------------------------
+
+SELECT *
+FROM call_transcripts;
+
+
+--language translation
+SELECT 
+    *,
+    snowflake.cortex.translate(transcript, '', 'en') as summary,
+FROM call_transcripts 
+WHERE language = 'German' or language = 'French';
+
+
+--summarization & classification
+SELECT 
+    date_created,
+    product, 
+    transcript,
+    snowflake.cortex.summarize(transcript) as summarization,
+    damage_type,
+    snowflake.cortex.classify_text(transcript, ['Missing Price Tags', 'Broken Zipper', 'Washed Out Color', 'Broken Buckle', 'Scratched']) as classification_damage_type
+FROM call_transcripts 
+WHERE language = 'English';
+
+
+--sentiment
+SELECT 
+    *,
+    snowflake.cortex.sentiment(transcript) as sentiment,
+    snowflake.cortex.entity_sentiment(transcript, ['cost', 'quality', 'timing'])
+FROM call_transcripts 
+WHERE language = 'English';
+
+
+--complete function with prompting
+SELECT
+    transcript,
+    snowflake.cortex.complete('claude-3-5-sonnet', CONCAT('Your job is to identify any potential PII or sensitive information. Please return the PII or sensitve information only, no intro: <transcript>. Respond in JSON format', transcript, '</transcript>')) as "CATEGORY" 
+FROM call_transcripts 
+WHERE language = 'English';
 
