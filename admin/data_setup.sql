@@ -105,4 +105,7 @@ CREATE OR REPLACE STAGE image_stage
 
 --upload images into this stage from the git rep admin/images
 
+create or replace table agero_hol_db.image_classification.image_table as
+select to_file(file_url) img_file, * from directory(@image_stage);
+
 
