@@ -1,16 +1,32 @@
 USE ROLE accountadmin;
-use schema utility.public;
 
-set num_users = xxx;
+-- Stored procedure to drop/delete all 20 warehouses
+CREATE OR REPLACE PROCEDURE drop_warehouses()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    i INTEGER DEFAULT 1;
+    warehouse_name STRING;
+    drop_sql STRING;
+BEGIN
+    WHILE (i <= 20) DO
+        warehouse_name := 'WH_' || LPAD(i::STRING, 2, '0');
+        drop_sql := 'DROP WAREHOUSE IF EXISTS ' || warehouse_name;
+        EXECUTE IMMEDIATE drop_sql;
+        i := i + 1;
+    END WHILE;
+    RETURN 'Successfully dropped 20 warehouses (WH_01 through WH_20)';
+END;
+$$;
 
-call utility.public.loopquery('drop database if exists HOL;', $num_users);
-call utility.public.loopquery('drop user if exists userXXX;', $num_users);
-call utility.public.loopquery('drop role if exists roleXXX;', $num_users);
-call utility.public.loopquery('drop warehouse if exists whXXX;', $num_users);
+CALL drop_warehouses(); 
 
-drop database WORLDWIDE_ADDRESS_DATA;
-drop database CARTO_ACADEMY__DATA_FOR_TUTORIALS;
-drop database utility;
+
+
+drop database agero_hol_db;
+drop role agero_hol_rol;
 
 show users;
 show warehouses;
