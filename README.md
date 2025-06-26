@@ -9,7 +9,7 @@
    Use Snowflake Cortex LLM functions to analyze call transcripts between a call center agent and the customer. Analysis included language translation, summarization, categorization, and sentiment analysis.
 
 3. **Image Classification:**
-   After setting up the environment, proceed with the forecasting tasks outlined in the lab guide.
+   Leverage Snowflake's newest LLM powered SQL functions to analyze multiple images. 
 
 ## Forecasting Walkthrough
 
